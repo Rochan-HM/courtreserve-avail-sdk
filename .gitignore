@@ -4,3 +4,4 @@ dist/
 .env.*
 *.log
 agent-tools/
+.courtreserve-session.json

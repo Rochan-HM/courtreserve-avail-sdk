@@ -1,11 +1,21 @@
 #!/usr/bin/env node
 import { readFileSync } from "node:fs";
+import { DateTime } from "luxon";
 import { parseArgs } from "node:util";
 import { pathToFileURL } from "node:url";
 import { describeSupportedAuth } from "./feasibility.js";
 import { parseFixtureMembership, parseFixtureSchedule } from "./fixtures.js";
-import { ClubNotJoinedError, LiveSearchBlockedError } from "./errors.js";
+import { ApiStatusError, ClubNotJoinedError, LiveSearchBlockedError, QueryValidationError, SessionExpiredError, SessionMissingError } from "./errors.js";
 import { requestClubEnrollment } from "./enrollment.js";
+import {
+  bookingLink,
+  listMemberBookings,
+  listMemberLocations,
+  listMemberOrganizations,
+  searchOpenSlots,
+  selectOrganization,
+} from "./member/portal.js";
+import { loadSessionFile, sessionPathFromEnv } from "./member/session.js";
 import { fixtureScheduleSource } from "./scope.js";
 import { searchJoinedClub } from "./search.js";
 import type { SearchRequest, SearchResult } from "./types.js";
@@ -25,10 +35,20 @@ export async function main(argv: string[]): Promise<number> {
         return enroll(rest);
       case "clubs":
         return clubs(rest);
+      case "orgs":
+        return await orgs();
+      case "locations":
+        return await locations(rest);
+      case "slots":
+        return await slots(rest);
+      case "bookings":
+        return await bookings(rest);
+      case "book":
+        return await book(rest);
       case "search":
         return await search(rest);
       default:
-        console.error("Commands: auth, clubs, search, enroll");
+        console.error("Commands: auth, clubs, orgs, locations, slots, bookings, book, search, enroll");
         return 2;
     }
   } catch (error) {
@@ -39,6 +59,15 @@ export async function main(argv: string[]): Promise<number> {
     if (error instanceof LiveSearchBlockedError) {
       console.error(error.message);
       return 4;
+    }
+    if (
+      error instanceof SessionMissingError ||
+      error instanceof SessionExpiredError ||
+      error instanceof QueryValidationError ||
+      error instanceof ApiStatusError
+    ) {
+      console.error(error.message);
+      return 1;
     }
     const message = error instanceof Error ? error.message : "Command failed.";
     console.error(message);
@@ -190,6 +219,117 @@ export function formatSearch(result: SearchResult): string {
     for (const rejection of result.rejections) lines.push(`- ${rejection.courtLabel}: ${rejection.reason}`);
   }
   return lines.join("\n");
+}
+
+async function orgs(): Promise<number> {
+  const organizations = await listMemberOrganizations(loadSessionFile(sessionPathFromEnv(process.env)));
+  for (const org of organizations) {
+    const marks = [org.primary ? "primary" : "", org.viewing ? "viewing" : ""].filter(Boolean).join(", ");
+    console.log(`${org.id}\t${org.name}${org.city ? ` (${org.city})` : ""}${marks ? ` [${marks}]` : ""}`);
+  }
+  return 0;
+}
+
+async function locations(args: string[]): Promise<number> {
+  const org = await resolveOrg(args);
+  const places = await listMemberLocations(loadSessionFile(sessionPathFromEnv(process.env)), org.id);
+  console.log(`${org.name}`);
+  for (const place of places) console.log(`${place.id}\t${place.name}\t${place.bookingUrl}`);
+  return 0;
+}
+
+async function slots(args: string[]): Promise<number> {
+  const { values } = parseArgs({
+    args,
+    options: { org: { type: "string" }, club: { type: "string" }, location: { type: "string" }, date: { type: "string" } },
+    strict: true,
+  });
+  if (!values.location || !values.date) {
+    console.error("slots requires --location and --date, plus --org or --club.");
+    return 2;
+  }
+  const org = await resolveOrg(args);
+  const result = await searchOpenSlots(loadSessionFile(sessionPathFromEnv(process.env)), org.id, values.location, values.date);
+  console.log(`${result.organization.name} / ${result.location.name}`);
+  console.log(`Date: ${result.date} ${result.timeZone}`);
+  console.log(`Hours: ${result.hoursLabel}`);
+  console.log(`Slot length: ${result.slotMinutes} min`);
+  console.log(`Reservations returned: ${result.reservationCount}`);
+  console.log(`Book in browser: ${result.bookingUrl}`);
+  console.log("This link opens the scheduler. It does not reserve a court.");
+  for (const court of result.courts) {
+    console.log("");
+    console.log(court.courtLabel);
+    if (court.ranges.length === 0) {
+      console.log("- none");
+      continue;
+    }
+    for (const range of court.ranges) console.log(`- ${range.startLocal}–${range.endLocal} (${range.durationMinutes} min)`);
+  }
+  return 0;
+}
+
+async function bookings(args: string[]): Promise<number> {
+  const org = await resolveOrg(args);
+  const rows = await listMemberBookings(loadSessionFile(sessionPathFromEnv(process.env)), org.id);
+  const upcoming = rows.filter((row) => !row.canceled && bookingIsUpcoming(row));
+  const past = rows.filter((row) => !row.canceled && !bookingIsUpcoming(row));
+  console.log(`${org.name}`);
+  console.log(`Open in browser: https://app.courtreserve.com/Online/Bookings/List/${org.id}`);
+  printBookings("Upcoming", upcoming);
+  printBookings("Past", past);
+  return 0;
+}
+
+async function book(args: string[]): Promise<number> {
+  const { values } = parseArgs({
+    args,
+    options: { org: { type: "string" }, club: { type: "string" }, location: { type: "string" } },
+    strict: true,
+  });
+  if (!values.location) {
+    console.error("book requires --location, plus --org or --club.");
+    return 2;
+  }
+  const org = await resolveOrg(args);
+  const location = await bookingLink(loadSessionFile(sessionPathFromEnv(process.env)), org.id, values.location);
+  console.log(`${org.name} / ${location.name}`);
+  console.log(location.bookingUrl);
+  console.log("Open this URL to book. This command does not reserve a court.");
+  return 0;
+}
+
+async function resolveOrg(args: string[]) {
+  const { values } = parseArgs({
+    args,
+    options: {
+      org: { type: "string" },
+      club: { type: "string" },
+      location: { type: "string" },
+      date: { type: "string" },
+    },
+    strict: true,
+  });
+  const query = values.org ?? values.club;
+  if (!query) throw new QueryValidationError("Pass --org or --club.");
+  return selectOrganization(await listMemberOrganizations(loadSessionFile(sessionPathFromEnv(process.env))), query);
+}
+
+function bookingIsUpcoming(row: { upcoming: boolean; startUtc: string | null; timeZone: string | null }): boolean {
+  if (!row.startUtc) return row.upcoming;
+  const start = DateTime.fromISO(row.startUtc, { zone: row.timeZone || "America/Los_Angeles" });
+  if (!start.isValid) return row.upcoming;
+  return start.toUTC() > DateTime.utc();
+}
+
+function printBookings(title: string, rows: Array<{ when: string; typeName: string; courts: string; bookingsUrl: string }>): void {
+  console.log("");
+  console.log(title);
+  if (rows.length === 0) {
+    console.log("- none");
+    return;
+  }
+  for (const row of rows) console.log(`- ${row.when} ${row.typeName} ${row.courts}`.trim());
 }
 
 function readJson(path: string): unknown {

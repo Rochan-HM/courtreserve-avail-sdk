@@ -1,4 +1,14 @@
 export { credentialsFromEnv, loginAsMember } from "./auth.js";
+export { openRanges, ticksToClock } from "./member/hours.js";
+export {
+  bookingLink,
+  listMemberBookings,
+  listMemberLocations,
+  listMemberOrganizations,
+  searchOpenSlots,
+  selectOrganization,
+} from "./member/portal.js";
+export { loadSessionFile, sessionPathFromEnv } from "./member/session.js";
 export {
   CourtReserveReadClient,
   availabilityParams,
@@ -20,6 +30,8 @@ export { readCourtsAppSnapshot, readOrganizationSnapshot } from "./admin/read.js
 export {
   ApiStatusError,
   ClubNotJoinedError,
+  SessionExpiredError,
+  SessionMissingError,
   CredentialsMissingError,
   LiveSearchBlockedError,
   MapError,

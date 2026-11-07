@@ -2,7 +2,7 @@
 
 Read-only TypeScript library and CLI for searching court time. It plans exact windows, court switches, and longer paid rentals from a normalized schedule. A 30-minute calendar row is not treated as a booking duration.
 
-Member password login is unsupported. The published CourtReserve APIs authenticate with an organization API key, which is a different principal from a club member. Authenticated member testing was not performed.
+The published CourtReserve APIs authenticate with an organization API key, which is a different principal from a club member. A signed-in browser cookie file can read the member portal: joined clubs, a club's locations, open court time, and that member's bookings. Reserving a court is a browser link. This package does not submit a reservation.
 
 ## Install
 
@@ -51,6 +51,22 @@ node dist/cli.js enroll --name "Fixture North"
 ```
 
 `search` reads clubs only from the membership file. An id that file does not list, including a number copied from a public booking URL, is rejected before any schedule lookup. The command prints `Evidence: fixture` and `Membership discovery: none`. `--password` and `--session` are rejected and are not recorded.
+
+Member portal commands read `.courtreserve-session.json`, or the file in `COURTRESERVE_SESSION_FILE`. That file is a cookie jar from a browser already signed in to CourtReserve. It is gitignored.
+
+```bash
+node dist/cli.js orgs
+
+node dist/cli.js locations --club synergy
+
+node dist/cli.js slots --club synergy --location "Menlo Park" --date 2026-11-07
+
+node dist/cli.js book --club synergy --location "Menlo Park"
+
+node dist/cli.js bookings --club "SK Badminton"
+```
+
+`orgs` lists every club on the member's My Organizations page, including ones this tool does not book against. `locations` lists the schedulers under Book a Court. For Synergy those are Menlo Park, Fremont (Automall), and Fremont (Mission). SK Badminton has one Book a Court scheduler. `slots` prints open ranges for that location's named courts. The slot length and court list come from the booking page. `book` prints the same scheduler URL and does not create a hold. `bookings` splits the member's own reservations into upcoming and past for the last 365 days.
 
 ## Library
 

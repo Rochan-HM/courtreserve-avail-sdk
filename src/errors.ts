@@ -1,5 +1,25 @@
 import type { MemberLoginSupport } from "./feasibility.js";
 
+export class SessionMissingError extends Error {
+  readonly code = "session-missing" as const;
+
+  constructor() {
+    super(
+      "No member session file. Set COURTRESERVE_SESSION_FILE or save the signed-in browser cookies as .courtreserve-session.json. Do not commit that file.",
+    );
+    this.name = "SessionMissingError";
+  }
+}
+
+export class SessionExpiredError extends Error {
+  readonly code = "session-expired" as const;
+
+  constructor() {
+    super("The member session was rejected. Sign in again in the browser and refresh the session file.");
+    this.name = "SessionExpiredError";
+  }
+}
+
 export class MemberLoginUnsupportedError extends Error {
   readonly code = "member-login-unsupported" as const;
 
