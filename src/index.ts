@@ -8,6 +8,7 @@ export {
   searchOpenSlots,
   selectOrganization,
 } from "./member/portal.js";
+export { loginHeadless, readMemberCredentials } from "./member/login.js";
 export { loadSessionFile, sessionPathFromEnv } from "./member/session.js";
 export {
   CourtReserveReadClient,

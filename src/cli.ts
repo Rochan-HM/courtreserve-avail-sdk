@@ -15,6 +15,7 @@ import {
   searchOpenSlots,
   selectOrganization,
 } from "./member/portal.js";
+import { loginHeadless, readDotEnvFile, readMemberCredentials } from "./member/login.js";
 import { loadSessionFile, sessionPathFromEnv } from "./member/session.js";
 import { fixtureScheduleSource } from "./scope.js";
 import { searchJoinedClub } from "./search.js";
@@ -45,10 +46,12 @@ export async function main(argv: string[]): Promise<number> {
         return await bookings(rest);
       case "book":
         return await book(rest);
+      case "login":
+        return await login();
       case "search":
         return await search(rest);
       default:
-        console.error("Commands: auth, clubs, orgs, locations, slots, bookings, book, search, enroll");
+        console.error("Commands: auth, login, clubs, orgs, locations, slots, bookings, book, search, enroll");
         return 2;
     }
   } catch (error) {
@@ -219,6 +222,15 @@ export function formatSearch(result: SearchResult): string {
     for (const rejection of result.rejections) lines.push(`- ${rejection.courtLabel}: ${rejection.reason}`);
   }
   return lines.join("\n");
+}
+
+async function login(): Promise<number> {
+  const envPath = process.env.COURTRESERVE_ENV_FILE || `${process.cwd()}/.env`;
+  const credentials = readMemberCredentials(process.env, readDotEnvFile(envPath));
+  const result = await loginHeadless(credentials);
+  console.log(`Signed in. Wrote ${result.cookieCount} cookies to ${result.path}`);
+  console.log("The password was not printed. The session file is gitignored.");
+  return 0;
 }
 
 async function orgs(): Promise<number> {

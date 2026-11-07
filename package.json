@@ -31,6 +31,7 @@
     "cli": "tsx src/cli.ts"
   },
   "dependencies": {
+    "camoufox": "^0.5.9",
     "luxon": "^3.7.2"
   },
   "devDependencies": {

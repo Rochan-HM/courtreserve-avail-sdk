@@ -52,7 +52,13 @@ node dist/cli.js enroll --name "Fixture North"
 
 `search` reads clubs only from the membership file. An id that file does not list, including a number copied from a public booking URL, is rejected before any schedule lookup. The command prints `Evidence: fixture` and `Membership discovery: none`. `--password` and `--session` are rejected and are not recorded.
 
-Member portal commands read `.courtreserve-session.json`, or the file in `COURTRESERVE_SESSION_FILE`. That file is a cookie jar from a browser already signed in to CourtReserve. It is gitignored.
+Member portal commands read `.courtreserve-session.json`, or the file in `COURTRESERVE_SESSION_FILE`. That file is a cookie jar. It is gitignored.
+
+`login` creates that file. Put `USERNAME` and `PASSWORD` in `.env` or the environment. Do not pass them as flags. The command opens headless Firefox through [Camoufox](https://github.com/daijro/camoufox), submits the public CourtReserve sign-in form, and stores the resulting cookies. The first run needs `npx camoufox fetch`.
+
+```bash
+npx tsx src/cli.ts login
+```
 
 ```bash
 node dist/cli.js orgs
