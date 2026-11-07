@@ -8,10 +8,10 @@ Member password login is unsupported. The published CourtReserve APIs authentica
 
 ```bash
 npm install
-npm test
-npm run typecheck
-npm run build
+npm run check
 ```
+
+`npm run check` builds the package, typechecks, runs the unit tests, then runs `test/integration/entry.test.ts` against `dist/index.js` and `dist/cli.js`. Those entry-point tests are labeled fixture, mock, or live-unauthenticated. Live authenticated member search is not run.
 
 Node.js 22 or newer. The package is private and is not published.
 
@@ -50,7 +50,7 @@ node dist/cli.js search \
 node dist/cli.js enroll --name "Fixture North"
 ```
 
-`search` reads clubs only from the membership file. An id that file does not list, including a number copied from a public booking URL, is rejected before any schedule lookup. `--password` and `--session` are rejected and are not recorded.
+`search` reads clubs only from the membership file. An id that file does not list, including a number copied from a public booking URL, is rejected before any schedule lookup. The command prints `Evidence: fixture` and `Membership discovery: none`. `--password` and `--session` are rejected and are not recorded.
 
 ## Library
 

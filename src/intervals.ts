@@ -114,13 +114,16 @@ export function classifyWindow(court: CourtSchedule, startUtc: number, endUtc: n
   if (court.coverage === "missing") return { ok: false, reason: "missing-from-payload" };
   if (endUtc <= startUtc) return { ok: false, reason: "unknown-coverage" };
 
-  const segments = court.intervals
-    .map((interval) => ({
-      start: Date.parse(interval.startUtc),
-      end: Date.parse(interval.endUtc),
-      status: interval.status,
-    }))
-    .filter((segment) => Number.isFinite(segment.start) && Number.isFinite(segment.end) && segment.end > segment.start)
+  const parsed = court.intervals.map((interval) => ({
+    start: Date.parse(interval.startUtc),
+    end: Date.parse(interval.endUtc),
+    status: interval.status,
+  }));
+  if (parsed.some((segment) => !Number.isFinite(segment.start) || !Number.isFinite(segment.end) || segment.end < segment.start)) {
+    return { ok: false, reason: "unknown-coverage" };
+  }
+  const segments = parsed
+    .filter((segment) => segment.end > segment.start)
     .filter((segment) => segment.start < endUtc && segment.end > startUtc)
     .sort((a, b) => a.start - b.start);
 

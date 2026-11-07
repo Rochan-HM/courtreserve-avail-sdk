@@ -32,6 +32,8 @@ export function searchSnapshot(snapshot: ScheduleSnapshot, request: SearchReques
 
   const base = (): SearchResult => ({
     mode: "offline-planner",
+    evidence: snapshot.source === "fixture" ? "offline-planner" : snapshot.source,
+    membershipDiscovery: "none",
     authority: snapshot.source,
     clubId: snapshot.clubId,
     timeZone: snapshot.timeZone,
@@ -146,7 +148,9 @@ export async function searchJoinedClub(args: {
   }
   if (club.timeZone && club.timeZone !== snapshot.timeZone) {
     const result = searchSnapshot(snapshot, args.request);
-    result.mode = "scoped-membership";
+    result.mode = "fixture-membership";
+    result.evidence = "fixture";
+    result.membershipDiscovery = "none";
     result.authority = "fixture";
     result.clubDisplayName = club.displayName;
     result.blockers = ["timezone-mismatch", ...result.blockers];
@@ -155,7 +159,9 @@ export async function searchJoinedClub(args: {
     return result;
   }
   const result = searchSnapshot(snapshot, args.request);
-  result.mode = "scoped-membership";
+  result.mode = "fixture-membership";
+  result.evidence = "fixture";
+  result.membershipDiscovery = "none";
   result.authority = "fixture";
   result.clubDisplayName = club.displayName;
   result.warnings = result.warnings.filter((warning) => warning !== "not-a-member-schedule");

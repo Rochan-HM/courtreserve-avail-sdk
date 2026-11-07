@@ -36,7 +36,9 @@ describe("membership scope", () => {
       },
     });
     assert.equal(loads, 1);
-    assert.equal(result.mode, "scoped-membership");
+    assert.equal(result.mode, "fixture-membership");
+    assert.equal(result.evidence, "fixture");
+    assert.equal(result.membershipDiscovery, "none");
     assert.equal(result.authority, "fixture");
     assert.equal(result.hits[0]?.kind, "exact");
     assert.equal(result.warnings.includes("fixture-membership"), true);

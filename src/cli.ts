@@ -146,6 +146,11 @@ async function search(args: string[]): Promise<number> {
 
 export function formatSearch(result: SearchResult): string {
   const lines = [
+    `Evidence: ${result.evidence}`,
+    "Membership discovery: none",
+    result.evidence === "fixture"
+      ? "Fixture membership is not a CourtReserve member's joined clubs."
+      : "Offline planner. This result did not discover joined clubs.",
     `Mode: ${result.mode}`,
     `Authority: ${result.authority}`,
     `Club: ${result.clubDisplayName ?? result.clubId ?? "unscoped"}`,

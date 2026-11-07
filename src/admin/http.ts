@@ -115,6 +115,9 @@ export class CourtReserveReadClient {
         continue;
       }
       lastStatus = response.status;
+      if (response.status === 429 || (response.status >= 500 && response.status <= 599)) {
+        await release(response);
+      }
       if (response.status === 429) {
         const retryAfterMs = parseRetryAfter(response.headers.get("retry-after"), this.deps.now());
         if (attempt === this.limits.maxRetries) {
@@ -215,6 +218,14 @@ export function availabilityParams(query: AvailabilityQuery): URLSearchParams {
     params.set("courtTypeId", String(query.courtTypeId));
   }
   return params;
+}
+
+async function release(response: Response): Promise<void> {
+  try {
+    await response.body?.cancel();
+  } catch {
+    // The status and Retry-After header are the contract. The body is unused.
+  }
 }
 
 function basic(credentials: ApiCredentials): string {

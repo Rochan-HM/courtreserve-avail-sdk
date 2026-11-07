@@ -119,7 +119,12 @@ export interface OverlappingPaidHit {
 export type SearchHit = ExactHit | CourtSwitchHit | OverlappingPaidHit;
 
 export interface SearchResult {
-  mode: "offline-planner" | "scoped-membership";
+  /** fixture-membership is a caller-supplied fixture list. It is not CourtReserve member discovery. */
+  mode: "offline-planner" | "fixture-membership";
+  /** How this result was produced. fixture is never a live joined-club lookup. */
+  evidence: "fixture" | "offline-planner" | ScheduleSourceKind;
+  /** This SDK has no member-club directory. Every result says so. */
+  membershipDiscovery: "none";
   authority: ScheduleSourceKind | "fixture";
   clubId: string | null;
   clubDisplayName?: string;
