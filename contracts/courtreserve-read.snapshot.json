@@ -1,0 +1,750 @@
+{
+  "_meta": {
+    "fetchedOn": "2026-11-07",
+    "sources": [
+      "https://api.courtreserve.com/swagger/docs/ORGANIZATION",
+      "https://api.courtreserve.com/swagger/docs/INTEGRATIONS"
+    ],
+    "unauthenticatedProbes": [
+      {
+        "method": "GET",
+        "url": "https://api.courtreserve.com/api/v1/reservation/availability?date=2026-11-07",
+        "status": 401,
+        "wwwAuthenticate": "Basic",
+        "body": "empty"
+      },
+      {
+        "method": "GET",
+        "url": "https://api.courtreserve.com/api/v1/courtsapp/availability?date=2026-11-07",
+        "status": 401,
+        "wwwAuthenticate": "Basic",
+        "body": "empty"
+      }
+    ],
+    "note": "Excerpt of public swagger read operations and the schemas they reference. Write operations are omitted. This is not an authenticated payload."
+  },
+  "organization": {
+    "info": {
+      "title": "Organization API",
+      "version": "ORGANIZATION"
+    },
+    "host": "api.courtreserve.com",
+    "schemes": [
+      "https",
+      "http"
+    ],
+    "securityDefinitions": {
+      "basic": {
+        "type": "basic",
+        "description": "Basic HTTP Authentication"
+      }
+    },
+    "paths": {
+      "/api/v1/reservation/availability": {
+        "get": {
+          "tags": [
+            "Reservation"
+          ],
+          "summary": "This service returns court availability \u2014 each court's operating hours and the time\r\nslots already booked on it \u2014 for a single date OR a date range (max 31 days).\r\nRequires the Reservation role with Read permission.",
+          "description": "Both query forms return the SAME shape \u2014 a date-range wrapper\r\n{ FromDate, ToDate, TimeZone, Days: [{ Date, TimeZone, Courts: [...] }, ...] }.\r\nPass date for a single day (one-element Days, FromDate == ToDate),\r\nOR fromDate + toDate for a range (one Days entry per date, capped at\r\n31 days). Passing date together with fromDate/toDate is rejected.\r\nAll date/time values are facility-local wall-clock time, interpreted in the org's IANA\r\nTimeZone (surfaced at the response root and on each day). Pricing is not included\r\non this surface. This mirrors the CourtsApp marketplace availability endpoint, reusing\r\nthe same org-scoped stored procedures.",
+          "operationId": "Reservation_Availability",
+          "consumes": [],
+          "produces": [
+            "application/json",
+            "text/json",
+            "application/xml",
+            "text/xml"
+          ],
+          "parameters": [
+            {
+              "name": "date",
+              "in": "query",
+              "description": "Single date (yyyy-MM-dd, facility-local). Mutually exclusive with fromDate/toDate.",
+              "required": false,
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "name": "fromDate",
+              "in": "query",
+              "description": "Start of date range (yyyy-MM-dd, inclusive). Pair with toDate.",
+              "required": false,
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "name": "toDate",
+              "in": "query",
+              "description": "End of date range (yyyy-MM-dd, inclusive). Pair with fromDate. Range capped at 31 days.",
+              "required": false,
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "name": "courtTypeId",
+              "in": "query",
+              "description": "Filter by court type ID (optional).",
+              "required": false,
+              "type": "integer",
+              "format": "int32"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/GenericEnterpriseApiResponseOfCourtAvailabilityApiResponse"
+              }
+            }
+          }
+        }
+      },
+      "/api/v1/reservation/courts": {
+        "get": {
+          "tags": [
+            "Reservation"
+          ],
+          "summary": "This service returns a list of courts.\r\nRequires the Reservation role with Read permission.",
+          "operationId": "Reservation_Courts",
+          "consumes": [],
+          "produces": [
+            "application/json",
+            "text/json",
+            "application/xml",
+            "text/xml"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/GenericEnterpriseApiResponseOfListOfCourtApiInfoDto"
+              }
+            }
+          }
+        }
+      },
+      "/api/v1/reservation/reservationtypes": {
+        "get": {
+          "tags": [
+            "Reservation"
+          ],
+          "summary": "This service returns a list of reservation types.\r\nRequires the Reservation role with Read permission.",
+          "operationId": "Reservation_ReservationTypes",
+          "consumes": [],
+          "produces": [
+            "application/json",
+            "text/json",
+            "application/xml",
+            "text/xml"
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "schema": {
+                "$ref": "#/definitions/GenericEnterpriseApiResponseOfListOfReservationTypeInfoDto"
+              }
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "GenericEnterpriseApiResponseOfCourtAvailabilityApiResponse": {
+        "properties": {
+          "ErrorMessage": {
+            "type": "string"
+          },
+          "Data": {
+            "$ref": "#/definitions/CourtAvailabilityApiResponse"
+          },
+          "IsSuccessStatusCode": {
+            "type": "boolean"
+          }
+        },
+        "xml": {
+          "name": "GenericEnterpriseApiResponse`1"
+        },
+        "type": "object"
+      },
+      "CourtAvailabilityApiResponse": {
+        "properties": {
+          "FromDate": {
+            "type": "string"
+          },
+          "ToDate": {
+            "type": "string"
+          },
+          "TimeZone": {
+            "type": "string"
+          },
+          "Days": {
+            "items": {
+              "$ref": "#/definitions/CourtAvailabilityDayApiDto"
+            },
+            "xml": {
+              "name": "CourtAvailabilityDayApiDto",
+              "wrapped": true
+            },
+            "type": "array"
+          }
+        },
+        "xml": {
+          "name": "CourtAvailabilityApiResponse"
+        },
+        "type": "object"
+      },
+      "CourtAvailabilityDayApiDto": {
+        "properties": {
+          "Date": {
+            "type": "string"
+          },
+          "TimeZone": {
+            "type": "string"
+          },
+          "Courts": {
+            "items": {
+              "$ref": "#/definitions/CourtAvailabilityCourtApiDto"
+            },
+            "xml": {
+              "name": "CourtAvailabilityCourtApiDto",
+              "wrapped": true
+            },
+            "type": "array"
+          }
+        },
+        "xml": {
+          "name": "CourtAvailabilityDayApiDto"
+        },
+        "type": "object"
+      },
+      "CourtAvailabilityCourtApiDto": {
+        "properties": {
+          "CourtId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CourtLabel": {
+            "type": "string"
+          },
+          "CourtTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CourtTypeName": {
+            "type": "string"
+          },
+          "OpenTime": {
+            "type": "string"
+          },
+          "CloseTime": {
+            "type": "string"
+          },
+          "Reservations": {
+            "items": {
+              "$ref": "#/definitions/CourtAvailabilitySlotApiDto"
+            },
+            "xml": {
+              "name": "CourtAvailabilitySlotApiDto",
+              "wrapped": true
+            },
+            "type": "array"
+          }
+        },
+        "xml": {
+          "name": "CourtAvailabilityCourtApiDto"
+        },
+        "type": "object"
+      },
+      "CourtAvailabilitySlotApiDto": {
+        "properties": {
+          "StartTime": {
+            "type": "string"
+          },
+          "EndTime": {
+            "type": "string"
+          }
+        },
+        "xml": {
+          "name": "CourtAvailabilitySlotApiDto"
+        },
+        "type": "object"
+      },
+      "GenericEnterpriseApiResponseOfListOfCourtApiInfoDto": {
+        "properties": {
+          "ErrorMessage": {
+            "type": "string"
+          },
+          "Data": {
+            "items": {
+              "$ref": "#/definitions/CourtApiInfoDto"
+            },
+            "xml": {
+              "name": "CourtApiInfoDto",
+              "wrapped": true
+            },
+            "type": "array"
+          },
+          "IsSuccessStatusCode": {
+            "type": "boolean"
+          }
+        },
+        "xml": {
+          "name": "GenericEnterpriseApiResponse`1"
+        },
+        "type": "object"
+      },
+      "CourtApiInfoDto": {
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Label": {
+            "type": "string"
+          },
+          "TypeName": {
+            "type": "string"
+          },
+          "OrderIndex": {
+            "type": "integer",
+            "format": "int32",
+            "x-nullable": true
+          }
+        },
+        "xml": {
+          "name": "CourtApiInfoDto"
+        },
+        "type": "object"
+      },
+      "GenericEnterpriseApiResponseOfListOfReservationTypeInfoDto": {
+        "properties": {
+          "ErrorMessage": {
+            "type": "string"
+          },
+          "Data": {
+            "items": {
+              "$ref": "#/definitions/ReservationTypeInfoDto"
+            },
+            "xml": {
+              "name": "ReservationTypeInfoDto",
+              "wrapped": true
+            },
+            "type": "array"
+          },
+          "IsSuccessStatusCode": {
+            "type": "boolean"
+          }
+        },
+        "xml": {
+          "name": "GenericEnterpriseApiResponse`1"
+        },
+        "type": "object"
+      },
+      "ReservationTypeInfoDto": {
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Name": {
+            "type": "string"
+          },
+          "BackgroundColor": {
+            "type": "string"
+          },
+          "TextColor": {
+            "type": "string"
+          },
+          "OrderIndex": {
+            "type": "integer",
+            "format": "int32",
+            "x-nullable": true
+          },
+          "RevenueCategoryName": {
+            "type": "string"
+          }
+        },
+        "xml": {
+          "name": "ReservationTypeInfoDto"
+        },
+        "type": "object"
+      }
+    }
+  },
+  "integrations": {
+    "info": {
+      "title": "Integrations API",
+      "version": "INTEGRATIONS"
+    },
+    "host": "api.courtreserve.com",
+    "schemes": [
+      "https",
+      "http"
+    ],
+    "securityDefinitions": {
+      "basic": {
+        "type": "basic",
+        "description": "Basic HTTP Authentication"
+      }
+    },
+    "paths": {
+      "/api/v1/courtsapp/availability": {
+        "get": {
+          "tags": [
+            "CourtsApp"
+          ],
+          "summary": "This service returns court availability for a single date OR a date range (max 31 days).",
+          "description": "Both query forms return the SAME response shape \u2014 a date-range wrapper:\r\n{ FromDate, ToDate, TimeZone, Days: [{ Date, TimeZone, Courts: [...] }, ...] }.\r\n            \r\n1. **Single day** \u2014 pass ?date=YYYY-MM-DD. Returns the wrapper with a\r\n   one-element Days[] and FromDate == ToDate.\r\n            \r\n2. **Date range** \u2014 pass ?fromDate=YYYY-MM-DD&amp;toDate=YYYY-MM-DD. Returns one\r\n   Days[] entry per date in the range (capped at 31 days; request more \u2192 400 VALIDATION).\r\n            \r\nReturning one unified shape (rather than a flat { Date, Courts } for the single-day\r\nform) keeps the documented 200 schema honest for every input, so a generated client can\r\nalways read Days[] without branching on the query it sent. See \u00a7 6.2 / \u00a7 6.8 of\r\ndocs/COURTS_APP_INTEGRATION.md.\r\n            \r\nMixing both shapes (passing date alongside fromDate/toDate) returns 400.\r\nPricing rules can vary by day-of-week, so each day's Cost and FeeType\r\nreflects that day's effective price for the configured membership.\r\n            \r\nAll date/time values are facility-local wall-clock time, interpreted in the org's IANA\r\nTimeZone (surfaced at the response root and on each day \u2014 Q10).",
+          "operationId": "CourtsApp_GetAvailability",
+          "consumes": [],
+          "produces": [
+            "application/json",
+            "text/json",
+            "application/xml",
+            "text/xml"
+          ],
+          "parameters": [
+            {
+              "name": "date",
+              "in": "query",
+              "description": "Single date (yyyy-MM-dd, facility-local). Mutually exclusive with fromDate/toDate.",
+              "required": false,
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "name": "fromDate",
+              "in": "query",
+              "description": "Start of date range (yyyy-MM-dd, inclusive). Pair with toDate.",
+              "required": false,
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "name": "toDate",
+              "in": "query",
+              "description": "End of date range (yyyy-MM-dd, inclusive). Pair with fromDate. Range capped at 31 days.",
+              "required": false,
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "name": "courtTypeId",
+              "in": "query",
+              "description": "Filter by court type ID (optional).",
+              "required": false,
+              "type": "integer",
+              "format": "int32"
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Availability retrieved successfully.",
+              "schema": {
+                "$ref": "#/definitions/CourtsAppRangeAvailabilityResponse"
+              }
+            },
+            "400": {
+              "description": "Invalid date parameters (missing/mixed query shape, range > 31 days, toDate < fromDate).",
+              "schema": {
+                "$ref": "#/definitions/CourtsAppErrorResponse"
+              }
+            },
+            "401": {
+              "description": "Invalid or missing API credentials."
+            },
+            "500": {
+              "description": "Server error.",
+              "schema": {
+                "$ref": "#/definitions/CourtsAppErrorResponse"
+              }
+            }
+          }
+        }
+      },
+      "/api/v1/courtsapp/courts": {
+        "get": {
+          "tags": [
+            "CourtsApp"
+          ],
+          "summary": "This service returns the static catalog of courts available within the organization.",
+          "description": "Returns court id, label, court type id and court type name for every active,\r\nnon-disabled court. Does NOT include per-day operating hours or reservation slots \u2014\r\nfor those, call /availability with a date range.",
+          "operationId": "CourtsApp_GetCourts",
+          "consumes": [],
+          "produces": [
+            "application/json",
+            "text/json",
+            "application/xml",
+            "text/xml"
+          ],
+          "responses": {
+            "200": {
+              "description": "Courts retrieved successfully.",
+              "schema": {
+                "items": {
+                  "$ref": "#/definitions/CourtsAppCourtCatalogResponse"
+                },
+                "xml": {
+                  "name": "CourtsAppCourtCatalogResponse",
+                  "wrapped": true
+                },
+                "type": "array"
+              }
+            },
+            "401": {
+              "description": "Invalid or missing API credentials."
+            },
+            "500": {
+              "description": "Server error.",
+              "schema": {
+                "$ref": "#/definitions/CourtsAppErrorResponse"
+              }
+            }
+          }
+        }
+      },
+      "/api/v1/courtsapp/reservation-types": {
+        "get": {
+          "tags": [
+            "CourtsApp"
+          ],
+          "summary": "This service returns a list of reservation types available within the organization.",
+          "operationId": "CourtsApp_GetReservationTypes",
+          "consumes": [],
+          "produces": [
+            "application/json",
+            "text/json",
+            "application/xml",
+            "text/xml"
+          ],
+          "responses": {
+            "200": {
+              "description": "Reservation types retrieved successfully.",
+              "schema": {
+                "items": {
+                  "$ref": "#/definitions/CourtsAppReservationTypeRow"
+                },
+                "xml": {
+                  "name": "CourtsAppReservationTypeRow",
+                  "wrapped": true
+                },
+                "type": "array"
+              }
+            },
+            "401": {
+              "description": "Invalid or missing API credentials."
+            },
+            "500": {
+              "description": "Server error.",
+              "schema": {
+                "$ref": "#/definitions/CourtsAppErrorResponse"
+              }
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "CourtsAppRangeAvailabilityResponse": {
+        "required": [
+          "FromDate",
+          "ToDate",
+          "Days"
+        ],
+        "properties": {
+          "FromDate": {
+            "type": "string"
+          },
+          "ToDate": {
+            "type": "string"
+          },
+          "TimeZone": {
+            "type": "string",
+            "x-nullable": true
+          },
+          "Days": {
+            "items": {
+              "$ref": "#/definitions/CourtsAppDayAvailabilityResponse"
+            },
+            "xml": {
+              "name": "CourtsAppDayAvailabilityResponse",
+              "wrapped": true
+            },
+            "type": "array"
+          }
+        },
+        "xml": {
+          "name": "CourtsAppRangeAvailabilityResponse"
+        },
+        "type": "object"
+      },
+      "CourtsAppDayAvailabilityResponse": {
+        "required": [
+          "Date",
+          "Courts"
+        ],
+        "properties": {
+          "Date": {
+            "type": "string"
+          },
+          "TimeZone": {
+            "type": "string",
+            "x-nullable": true
+          },
+          "Courts": {
+            "items": {
+              "$ref": "#/definitions/CourtsAppCourtAvailabilityEntry"
+            },
+            "xml": {
+              "name": "CourtsAppCourtAvailabilityEntry",
+              "wrapped": true
+            },
+            "type": "array"
+          }
+        },
+        "xml": {
+          "name": "CourtsAppDayAvailabilityResponse"
+        },
+        "type": "object"
+      },
+      "CourtsAppCourtAvailabilityEntry": {
+        "required": [
+          "CourtId",
+          "CourtLabel",
+          "CourtTypeId",
+          "CourtTypeName",
+          "OpenTime",
+          "CloseTime",
+          "Reservations"
+        ],
+        "properties": {
+          "CourtId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CourtLabel": {
+            "type": "string"
+          },
+          "CourtTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CourtTypeName": {
+            "type": "string"
+          },
+          "OpenTime": {
+            "type": "string"
+          },
+          "CloseTime": {
+            "type": "string"
+          },
+          "Cost": {
+            "type": "number",
+            "format": "double",
+            "x-nullable": true
+          },
+          "FeeType": {
+            "type": "string",
+            "x-nullable": true
+          },
+          "Reservations": {
+            "items": {
+              "$ref": "#/definitions/CourtsAppCourtAvailabilityReservation"
+            },
+            "xml": {
+              "name": "CourtsAppCourtAvailabilityReservation",
+              "wrapped": true
+            },
+            "type": "array"
+          }
+        },
+        "xml": {
+          "name": "CourtsAppCourtAvailabilityEntry"
+        },
+        "type": "object"
+      },
+      "CourtsAppCourtAvailabilityReservation": {
+        "required": [
+          "StartTime",
+          "EndTime"
+        ],
+        "properties": {
+          "StartTime": {
+            "type": "string"
+          },
+          "EndTime": {
+            "type": "string"
+          }
+        },
+        "xml": {
+          "name": "CourtsAppCourtAvailabilityReservation"
+        },
+        "type": "object"
+      },
+      "CourtsAppReservationTypeRow": {
+        "properties": {
+          "Id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Name": {
+            "type": "string",
+            "x-nullable": true
+          },
+          "MinTime": {
+            "type": "integer",
+            "format": "int32",
+            "x-nullable": true
+          },
+          "MaxTime": {
+            "type": "integer",
+            "format": "int32",
+            "x-nullable": true
+          },
+          "DefaultMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "x-nullable": true
+          },
+          "IncrementMinutes": {
+            "type": "integer",
+            "format": "int32",
+            "x-nullable": true
+          }
+        },
+        "xml": {
+          "name": "CourtsAppReservationTypeRow"
+        },
+        "type": "object"
+      },
+      "CourtsAppCourtCatalogResponse": {
+        "required": [
+          "CourtId",
+          "CourtLabel",
+          "CourtTypeId",
+          "CourtTypeName"
+        ],
+        "properties": {
+          "CourtId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CourtLabel": {
+            "type": "string"
+          },
+          "CourtTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CourtTypeName": {
+            "type": "string"
+          }
+        },
+        "xml": {
+          "name": "CourtsAppCourtCatalogResponse"
+        },
+        "type": "object"
+      }
+    }
+  }
+}

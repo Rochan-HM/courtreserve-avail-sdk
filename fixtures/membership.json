@@ -1,0 +1,15 @@
+{
+  "label": "Synthetic fixture membership. Not a CourtReserve member session and not derived from a calendar URL.",
+  "clubs": [
+    {
+      "clubId": "fixture-north",
+      "displayName": "Fixture North",
+      "timeZone": "America/Los_Angeles"
+    },
+    {
+      "clubId": "fixture-south",
+      "displayName": "Fixture South",
+      "timeZone": "America/Los_Angeles"
+    }
+  ]
+}

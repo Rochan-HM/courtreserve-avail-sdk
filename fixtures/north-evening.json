@@ -1,0 +1,69 @@
+{
+  "clubId": "fixture-north",
+  "timeZone": "America/Los_Angeles",
+  "observedAt": "2026-06-15T17:00:00.000-07:00",
+  "courtDirectory": "confirmed",
+  "source": "fixture",
+  "sourceNote": "Synthetic evening grid. 30-minute rows are not booking durations. Court A is reserved 18:30-19:00, so an 18:00-19:30 window is a conflict even though the cells on either side are open.",
+  "priceQuote": null,
+  "reservationTypes": [
+    {
+      "id": "member-hit",
+      "name": "Member hit",
+      "constraintsKnown": true,
+      "allowedDurationsMinutes": [30, 60, 90, 120],
+      "minimumDurationMinutes": 30,
+      "maximumDurationMinutes": 120
+    }
+  ],
+  "courts": [
+    {
+      "courtId": "court-a",
+      "courtLabel": "Court A",
+      "coverage": "complete",
+      "intervals": [
+        { "startUtc": "2026-06-15T07:00:00.000Z", "endUtc": "2026-06-16T00:00:00.000Z", "status": "unavailable" },
+        { "startUtc": "2026-06-16T00:00:00.000Z", "endUtc": "2026-06-16T01:30:00.000Z", "status": "open" },
+        { "startUtc": "2026-06-16T01:30:00.000Z", "endUtc": "2026-06-16T02:00:00.000Z", "status": "reserved" },
+        { "startUtc": "2026-06-16T02:00:00.000Z", "endUtc": "2026-06-16T04:00:00.000Z", "status": "open" },
+        { "startUtc": "2026-06-16T04:00:00.000Z", "endUtc": "2026-06-16T07:00:00.000Z", "status": "unavailable" }
+      ]
+    },
+    {
+      "courtId": "court-b",
+      "courtLabel": "Court B",
+      "coverage": "complete",
+      "intervals": [
+        { "startUtc": "2026-06-15T07:00:00.000Z", "endUtc": "2026-06-16T00:00:00.000Z", "status": "unavailable" },
+        { "startUtc": "2026-06-16T00:00:00.000Z", "endUtc": "2026-06-16T04:00:00.000Z", "status": "open" },
+        { "startUtc": "2026-06-16T04:00:00.000Z", "endUtc": "2026-06-16T07:00:00.000Z", "status": "unavailable" }
+      ]
+    },
+    {
+      "courtId": "court-d",
+      "courtLabel": "Court D",
+      "coverage": "complete",
+      "intervals": [
+        { "startUtc": "2026-06-15T07:00:00.000Z", "endUtc": "2026-06-16T01:00:00.000Z", "status": "unavailable" },
+        { "startUtc": "2026-06-16T01:00:00.000Z", "endUtc": "2026-06-16T01:30:00.000Z", "status": "open" },
+        { "startUtc": "2026-06-16T01:30:00.000Z", "endUtc": "2026-06-16T07:00:00.000Z", "status": "unavailable" }
+      ]
+    },
+    {
+      "courtId": "court-e",
+      "courtLabel": "Court E",
+      "coverage": "complete",
+      "intervals": [
+        { "startUtc": "2026-06-15T07:00:00.000Z", "endUtc": "2026-06-16T01:30:00.000Z", "status": "unavailable" },
+        { "startUtc": "2026-06-16T01:30:00.000Z", "endUtc": "2026-06-16T02:30:00.000Z", "status": "open" },
+        { "startUtc": "2026-06-16T02:30:00.000Z", "endUtc": "2026-06-16T07:00:00.000Z", "status": "unavailable" }
+      ]
+    },
+    {
+      "courtId": "court-offscreen",
+      "courtLabel": "Court Offscreen",
+      "coverage": "missing",
+      "intervals": []
+    }
+  ]
+}
